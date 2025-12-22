@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<title>Cotizador LCL - CORS FIX</title>
+<style>body{font-family:Arial;max-width:800px;margin:50px auto;padding:20px;} button{padding:10px 20px;font-size:16px;background:#007bff;color:white;border:none;cursor:pointer;} button:hover{background:#0056b3;} #resultado{background:#f8f9fa;padding:20px;border-radius:8px;margin-top:20px;}</style>
+
+<h1>🚢 Cotizador LCL Marítimo</h1>
+<label>Puerto Origen: <input id="origen" value="Buenaventura" style="width:200px;padding:5px;"></label><br>
+<label>Destino: <input id="via" value="Milano/Genova" style="width:200px;padding:5px;"></label><br>
+<label>Peso kg: <input id="peso" type="number" value="1000" style="width:100px;padding:5px;"></label>
+<label>Vol CBM: <input id="volumen" type="number" step="0.001" value="2" style="width:100px;padding:5px;"></label><br>
+<button onclick="cotizar()">💰 COTIZAR</button>
+<button onclick="testApi()">🧪 TEST API</button>
+
+<div id="resultado"></div>
+
+<script>
+async function testApi() {
+  document.getElementById('resultado').innerHTML = '⏳ Testeando API...';
+  try {
+    const res = await fetch('http://localhost:3001/api/cotizar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({puerto_origen:'Buenaventura',via:'Milano/Genova',peso:1000,volumen:2})
+    });
+    const data = await res.json();
+    document.getElementById('resultado').innerHTML = '✅ API OK! ' + JSON.stringify(data.cotizacion.precioVentaSugerido);
+  } catch(e) {
+    document.getElementById('resultado').innerHTML = '❌ ' + e.message;
+  }
+}
+
+async function cotizar() {
+  const data = {
+    puerto_origen: document.getElementById('origen').value,
+    via: document.getElementById('via').value,
+    peso: parseFloat(document.getElementById('peso').value),
+    volumen: parseFloat(document.getElementById('volumen').value)
+  };
+  
+  document.getElementById('resultado').innerHTML = '⏳ Cotizando...';
+  
+  try {
+    const res = await fetch('http://localhost:3001/api/cotizar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
+    });
+    
+    const json = await res.json();
+    if (json.exito) {
+      const c = json.cotizacion;
+      document.getElementById('resultado').innerHTML = `
+        <h2>💰 $${Math.round(c.precioVentaSugerido).toLocaleString()}</h2>
+        <p>📏 Peso facturable: ${c.pesoFacturable.toLocaleString()}kg</p>
+        <p>💵 Flete: $${Math.round(c.fleteBase).toLocaleString()}</p>
+        <p>🎯 Margen: ${c.margen.toFixed(1)}%</p>
+        ${json.validacion.esValida ? '✅ Cotización OK' : '⚠️ ' + json.validacion.alertas.join(', ')}
+      `;
+    }
+  } catch(e) {
+    document.getElementById('resultado').innerHTML = '❌ ' + e.message;
+  }
+}
+</script>

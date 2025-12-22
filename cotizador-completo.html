@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🚢 Cotizador LCL Marítimo - Pricing Automático</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; font-size: 16px; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #resultado { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    .precio { font-size: 2em; color: #28a745; font-weight: bold; }
+    .alerta { color: #dc3545; }
+    .buena { color: #28a745; }
+    pre { background: #e9ecef; padding: 15px; border-radius: 5px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h1>🚢 Cotizador LCL Marítimo FOB</h1>
+  
+  <div style="background: #e7f3ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <strong>Tarifas Reales LATAM → Europa/USA:</strong><br>
+    Buenaventura → Milano/Genova (156 USD/WM)<br>
+    Guayaquil → Hamburg (189 USD/WM)<br>
+    Manzanillo → Antwerp (145 USD/WM)
+  </div>
+
+  <div>
+    <label>Puerto Origen: <input id="origen" value="Buenaventura" style="width:200px;"></label><br>
+    <label>Destino/Vía: <input id="via" value="Milano/Genova" style="width:200px;"></label><br>
+    <label>Peso (kg): <input id="peso" type="number" value="1000" style="width:100px;"></label>
+    <label>Volumen (CBM): <input id="volumen" type="number" step="0.001" value="2" style="width:100px;"></label><br>
+    <button onclick="cotizar()">💰 COTIZAR</button>
+    <button onclick="cotizarEjemplo()">📊 Ejemplos Rápidos</button>
+  </div>
+  
+  <div id="resultado"></div>
+
+  <script>
+  async function cotizar() {
+    const data = {
+      puerto_origen: document.getElementById('origen').value,
+      via: document.getElementById('via').value,
+      peso: parseFloat(document.getElementById('peso').value),
+      volumen: parseFloat(document.getElementById('volumen').value)
+    };
+    
+    document.getElementById('resultado').innerHTML = '⏳ Calculando...';
+    
+    try {
+      const res = await fetch('http://localhost:3001/api/cotizar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+      });
+      
+      const json = await res.json();
+      
+      if (json.exito) {
+        const c = json.cotizacion;
+        document.getElementById('resultado').

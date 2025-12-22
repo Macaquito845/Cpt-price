@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Importador Excel Pricing</title></head>
+<body style="font-family:Arial;">
+  <h1>📊 Importar Excel Tarifas</h1>
+  
+  <input type="file" id="excelFile" accept=".xlsx,.xls" style="margin:10px 0;">
+  <button onclick="importarExcel()" style="padding:10px 20px;font-size:16px;">🚀 IMPORTAR EXCEL</button>
+  
+  <div id="resultado" style="margin-top:20px;padding:20px;border:1px solid #ccc;white-space:pre-wrap;"></div>
+
+  <script>
+  async function importarExcel() {
+    const file = document.getElementById('excelFile').files[0];
+    if (!file) return alert('Selecciona un archivo Excel');
+    
+    document.getElementById('resultado').innerHTML = '⏳ Procesando...';
+    
+    // Convertir a base64 AUTOMÁTICO
+    const buffer = await file.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    
+    const res = await fetch('http://localhost:3001/api/tarifas/import', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({excelBase64: base64})
+    });
+    
+    const json = await res.json();
+    document.getElementById('resultado').innerHTML = `
+💾 RESULTADO:
+${JSON.stringify(json, null, 2)}
+    `;
+  }
+  </script>
+</body>
+</html>
